@@ -1,0 +1,55 @@
+import tkinter as tk
+from tkinter import messagebox
+import sqlite3
+
+# Configurar la base de datos
+conn = sqlite3.connect('restaurant.db')
+c = conn.cursor()
+c.execute('''CREATE TABLE IF NOT EXISTS menu
+             (id INTEGER PRIMARY KEY, name TEXT, price REAL)''')
+conn.commit()
+
+# Funciones
+def add_dish():
+    name = entry_name.get()
+    price = entry_price.get()
+    if name and price:
+        c.execute("INSERT INTO menu (name, price) VALUES (?, ?)", (name, price))
+        conn.commit()
+        messagebox.showinfo("Success", "Dish added successfully!")
+        entry_name.delete(0, tk.END)
+        entry_price.delete(0, tk.END)
+        show_menu()
+    else:
+        messagebox.showwarning("Input Error", "Please enter both name and price")
+
+def show_menu():
+    c.execute("SELECT * FROM menu")
+    rows = c.fetchall()
+    listbox_menu.delete(0, tk.END)
+    for row in rows:
+        listbox_menu.insert(tk.END, f"{row[1]} - ${row[2]:.2f}")
+
+# Interfaz de Usuario
+root = tk.Tk()
+root.title("Restaurant Management")
+
+tk.Label(root, text="Dish Name:").pack(pady=5)
+entry_name = tk.Entry(root)
+entry_name.pack(pady=5)
+
+tk.Label(root, text="Dish Price:").pack(pady=5)
+entry_price = tk.Entry(root)
+entry_price.pack(pady=5)
+
+tk.Button(root, text="Add Dish", command=add_dish).pack(pady=20)
+
+listbox_menu = tk.Listbox(root)
+listbox_menu.pack(pady=10, fill=tk.BOTH, expand=True)
+
+show_menu()
+
+root.mainloop()
+
+# Cerrar la conexión de la base de datos
+conn.close()
