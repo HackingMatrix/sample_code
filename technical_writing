@@ -1,0 +1,108 @@
+Título: Sistema de Gestión de Restaurante
+
+Introducción:
+Este documento describe el diseño y la implementación de un sistema de gestión de restaurante utilizando Python, Tkinter y SQLite. El sistema permite a los usuarios gestionar el menú, los pedidos y el inventario del restaurante.
+
+Requisitos:
+
+Gestión de Menú: Añadir, editar y eliminar platos.
+Gestión de Pedidos: Registrar nuevos pedidos y actualizar su estado.
+Gestión de Inventario: Controlar los ingredientes y suministros.
+Gestión de Empleados: Registrar y gestionar la información de los empleados.
+Generación de Reportes: Crear reportes de ventas y uso de inventario.
+Diseño de la Base de Datos:
+La base de datos se ha diseñado utilizando SQLite. A continuación se muestra la estructura de las tablas principales.
+
+sql
+Copiar código
+CREATE TABLE menu (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    price REAL NOT NULL
+);
+
+CREATE TABLE orders (
+    id INTEGER PRIMARY KEY,
+    table_number INTEGER NOT NULL,
+    order_details TEXT NOT NULL,
+    status TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE inventory (
+    id INTEGER PRIMARY KEY,
+    item_name TEXT NOT NULL,
+    quantity INTEGER NOT NULL
+);
+
+CREATE TABLE employees (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    position TEXT NOT NULL,
+    hire_date DATE
+);
+Descripción del Código:
+El siguiente fragmento de código muestra cómo añadir un nuevo plato al menú utilizando Tkinter para la interfaz de usuario y SQLite para la gestión de datos.
+
+python
+Copiar código
+import tkinter as tk
+from tkinter import messagebox
+import sqlite3
+
+# Configurar la base de datos
+conn = sqlite3.connect('restaurant.db')
+c = conn.cursor()
+
+# Crear la tabla del menú si no existe
+c.execute('''CREATE TABLE IF NOT EXISTS menu
+             (id INTEGER PRIMARY KEY, name TEXT, price REAL)''')
+conn.commit()
+
+# Función para añadir un plato
+def add_dish():
+    name = entry_name.get()
+    price = entry_price.get()
+    if name and price:
+        c.execute("INSERT INTO menu (name, price) VALUES (?, ?)", (name, price))
+        conn.commit()
+        messagebox.showinfo("Success", "Dish added successfully!")
+        entry_name.delete(0, tk.END)
+        entry_price.delete(0, tk.END)
+        show_menu()
+    else:
+        messagebox.showwarning("Input Error", "Please enter both name and price")
+
+# Función para mostrar el menú
+def show_menu():
+    c.execute("SELECT * FROM menu")
+    rows = c.fetchall()
+    listbox_menu.delete(0, tk.END)
+    for row in rows:
+        listbox_menu.insert(tk.END, f"{row[1]} - ${row[2]:.2f}")
+
+# Interfaz de Usuario
+root = tk.Tk()
+root.title("Restaurant Management")
+
+tk.Label(root, text="Dish Name:").pack(pady=5)
+entry_name = tk.Entry(root)
+entry_name.pack(pady=5)
+
+tk.Label(root, text="Dish Price:").pack(pady=5)
+entry_price = tk.Entry(root)
+entry_price.pack(pady=5)
+
+tk.Button(root, text="Add Dish", command=add_dish).pack(pady=20)
+
+listbox_menu = tk.Listbox(root)
+listbox_menu.pack(pady=10, fill=tk.BOTH, expand=True)
+
+show_menu()
+
+root.mainloop()
+
+# Cerrar la conexión de la base de datos
+conn.close()
+Conclusión:
+Este sistema de gestión de restaurante ofrece una solución básica pero funcional para gestionar las operaciones de un restaurante. Con futuras mejoras, se pueden añadir más funcionalidades como la gestión de reservas, análisis avanzado de ventas y más.
